@@ -7,8 +7,8 @@ dotenv.config();
 
 connectDB();
 
-app.use("/", (req, res) => {
-    res.send("Hola Mundo");
+app.get("/", (req, res) => {
+    res.send("¡Bienvenid@ al Bingo Virtual de el Gran Buda!");
 });
 
 const PORT = process.env.PORT || 3000; //Si no existe el puerto en el deployement, se asigna el 3000
