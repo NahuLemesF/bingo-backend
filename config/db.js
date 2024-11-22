@@ -1,10 +1,9 @@
 import mongoose from 'mongoose';
 
-const dbURI = 'mongodb+srv://nahulem:b3nd174l0cur4@cluster0.dr9v2.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0'
 
 const connectDB = async () => {
     try {
-        const db = await mongoose.connect(dbURI, { 
+        const db = await mongoose.connect(process.env.MONGO_URI, { 
             useNewUrlParser: true, 
             useUnifiedTopology: true, 
         });
