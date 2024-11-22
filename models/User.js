@@ -3,13 +3,13 @@ import bcrypt from "bcryptjs";
 
 // Esquema del usuario
 const userSchema = new mongoose.Schema({
-    name: { type: String, required: true}, // Nombre del usuario
-    email: { type: String, required: true, unique: true}, // Correo electrónico único
-    password: { type: String, required: true}, // Contraseña del usuario
+    name: { type: String, required: true, trim: true }, // Nombre del usuario
+    email: { type: String, required: true, unique: true, trim: true }, // Correo electrónico único
+    password: { type: String, required: true }, // Contraseña del usuario
 })
 
 // Para encriptar las contraseñas antes de guardarlas
-userSchema.pre('save', async function(next) {
+userSchema.pre('save', async function (next) {
     if (!this.isModified('password')) {
         return next();
     }
@@ -18,8 +18,7 @@ userSchema.pre('save', async function(next) {
 })
 
 // Para verificar contraseña del usuario en el login
-
-userSchema.methods.matchPassword = async function(enteredPassword) {
+userSchema.methods.matchPassword = async function (enteredPassword) {
     return await bcrypt.compare(enteredPassword, this.password);
 }
 
