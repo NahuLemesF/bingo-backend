@@ -25,5 +25,29 @@ router.post('/assign-cards/:gameId', protect, async (req, res) => {
     }
 })
 
+// Ruta para dibujar una balota
+router.post('/draw-ball/:gameId', protect, async (req, res) => {
+    try {
+      // Obtenemos el ID del juego desde los parámetros de la URL
+      const { gameId } = req.params;
+  
+      // Buscamos el juego por ID
+      const game = await Game.findById(gameId);
+      if (!game) {
+        return res.status(404).json({ message: "Juego no encontrado" });
+      }
+  
+      // Llamamos al método drawBall en el juego
+      const ballNumber = await game.drawBall(); // Utilizamos el método drawBall que implementamos antes
+  
+      // Devolvemos el número de la balota extraída
+      res.status(200).json({ message: "Balota extraída", ballNumber });
+    } catch (error) {
+      console.error("Error al dibujar la balota:", error.message);
+      res.status(500).json({ message: "Error al extraer la balota" });
+    }
+  });
+  
+
 // Exportamos el enrutador para que pueda ser utilizado en otros archivos
 export default router;

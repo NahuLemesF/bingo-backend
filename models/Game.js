@@ -30,5 +30,34 @@ const gameSchema = new mongoose.Schema(
   { timestamps: true } // Agrega automáticamente campos createdAt y updatedAt
 );
 
+
+// Metodo para sortear una bolilla / balota
+gameSchema.methods.drawBall = async function () {
+  try {
+      // Generar un número aleatorio entre 1 y 75
+      const ballNumber = Math.floor(Math.random() * 75) + 1;
+
+      // Verificar que la balota no haya sido llamada antes
+      const existingBall = this.balls.find(ball => ball.number === ballNumber);
+      if (existingBall) {
+          throw new Error("La balota ya ha sido llamada.");
+      }
+
+      // Añadir la balota al arreglo de balotas
+      this.balls.push({
+          number: ballNumber,
+          calledAt: new Date(),
+      });
+
+      // Guardar los cambios en el juego
+      await this.save();
+      return ballNumber; // Retornar el número de la balota extraída
+
+  } catch (error) {
+      console.error("Error al extraer una balota:", error.message);
+      throw new Error("No se pudo extraer una balota.");
+  }
+};
+
 const Game = mongoose.model("Game", gameSchema);
 export default Game;
