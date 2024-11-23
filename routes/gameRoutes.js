@@ -1,5 +1,6 @@
 import express from 'express';
 import { startGame, assignCardToPlayer } from '../controllers/gameController.js';
+import { protect } from '../middleware/authMiddleware.js';
 
 const router = express.Router(); // Enrutador de express
 
@@ -7,7 +8,7 @@ const router = express.Router(); // Enrutador de express
 router.post('/start-game', startGame);
 
 // Ruta para asignar tarjetas
-router.post('/assign-cards/:gameId', async (req, res) => {
+router.post('/assign-cards/:gameId', protect, async (req, res) => {
     try {
         // Obtenemos el ID del Juego de los parametros de la URL
         const { gameId } = req.params;
