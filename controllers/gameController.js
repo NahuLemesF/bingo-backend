@@ -7,13 +7,19 @@ const startGame = async (req, res) => {
     try {
         // Crea un nuevo juego con el estado 'waiting'
         const newGame = new Game({
-            players: req.body.players || [], // Para asegurar que los jugadores se envien en el cuerpo de la solicitud
+            players: [],
             balls: [],
             gameStatus: 'waiting',
         });
 
         // Guarda el juego en la base de datos
         const savedGame = await newGame.save();
+
+        // Llamada a assignCardToPlayer para asignar tarjetas a los jugadores
+        // Si tienes jugadores en el juego, se asignan las tarjetas
+        if (savedGame.players.length > 0) {
+            await assignCardToPlayer(savedGame._id);
+        }
 
         res.status(201).json({ message: 'Juego creado', game: savedGame });
     } catch (error) {
@@ -26,14 +32,9 @@ const startGame = async (req, res) => {
 const assignCardToPlayer = async (gameId) => {
     try {
         // Encuentra el juego por su ID
-        const game = await Game.findById(gameId).populate("players"); // Para asegurarse de que hay jugadores
+        const game = await Game.findById(gameId);
         if (!game) {
             throw new Error("Juego no encontrado");
-        }
-
-        // Verifica si ya hay jugadores en el juego
-        if (game.players.length === 0) {
-            throw new Error("No hay jugadores en el juego");
         }
 
         const assignedCards = [];
