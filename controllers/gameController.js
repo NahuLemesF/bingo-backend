@@ -15,7 +15,11 @@ const startGame = async (req, res) => {
         // Guarda el juego en la base de datos
         const savedGame = await newGame.save();
 
+<<<<<<< HEAD
         res.status(201).json({ message: 'Juego creado', game: savedGame });
+=======
+        res.status(201).json({ message: 'Juego iniciado', game: savedGame });
+>>>>>>> test-branch
     } catch (error) {
         console.error("Error al iniciar un nuevo juego:", error.message);
         res.status(500).json({ message: 'Error al iniciar el juego' });
@@ -23,6 +27,7 @@ const startGame = async (req, res) => {
 };
 
 // Función para asignar una tarjeta a cada jugador
+<<<<<<< HEAD
 const assignCardToPlayer = async (gameId) => {
     try {
         // Encuentra el juego por su ID
@@ -34,6 +39,19 @@ const assignCardToPlayer = async (gameId) => {
         // Verifica si ya hay jugadores en el juego
         if (game.players.length === 0) {
             throw new Error("No hay jugadores en el juego");
+=======
+const assignCardToPlayer = async (req, res) => {
+    const { gameId } = req.params;
+    try {
+        // Encuentra el juego por su ID
+        const game = await Game.findById(gameId);
+        if (!game) {
+            return res.status(404).json({ message: "Juego no encontrado" });
+        }
+
+        if (game.players.length === 0) {
+            return res.status(400).json({ message: "No hay jugadores en el juego" });
+>>>>>>> test-branch
         }
 
         const assignedCards = [];
@@ -41,18 +59,26 @@ const assignCardToPlayer = async (gameId) => {
         for (const player of game.players) {
             // Genera una tarjeta para el jugador
             const newCard = new Card({ columns: generateBingoCard() });
+<<<<<<< HEAD
 
             // Guarda la tarjeta en la base de datos
             await newCard.save();
 
             // Asigna la tarjeta al jugador
             player.card = newCard._id;
+=======
+            await newCard.save();
+
+            // Asigna la tarjeta al jugador
+            player.bingoCard = newCard._id;
+>>>>>>> test-branch
             assignedCards.push(newCard);
         }
 
         // Guarda los cambios en el juego
         await game.save();
 
+<<<<<<< HEAD
         return assignedCards;
     } catch (error) {
         console.error("Error al asignar una tarjeta a un jugador:", error.message);
@@ -61,3 +87,13 @@ const assignCardToPlayer = async (gameId) => {
 };
 
 export { startGame, assignCardToPlayer };
+=======
+        res.status(200).json({ message: 'Tarjetas asignadas', assignedCards });
+    } catch (error) {
+        console.error("Error al asignar tarjeta:", error.message);
+        res.status(500).json({ message: 'Error al asignar tarjeta' });
+    }
+};
+
+export { startGame, assignCardToPlayer };
+>>>>>>> test-branch
