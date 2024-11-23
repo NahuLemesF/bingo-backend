@@ -1,24 +1,43 @@
-import express from "express"; 
+import express from "express";
 import dotenv from "dotenv";
+import { createServer } from "http";
+import { Server } from "socket.io";
+import cors from "cors";
 import connectDB from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import gameRoutes from "./routes/gameRoutes.js";
+import { setupSocketEvents } from "./socket/socketManager.js";
 
-dotenv.config(); 
+dotenv.config();
 
-const app = express(); // Llamando express
+// Inicialización
+const app = express();
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
+  cors: {
+    origin: process.env.FRONTEND_URL || "http://localhost:5173", // Puerto típico de Vite
+    methods: ["GET", "POST"]
+  }
+});
 
-app.use(express.json()); // Middleware para parsear JSON
+// Middleware
+app.use(cors());
+app.use(express.json());
 
-// Conectar a MongoDB
+// Conexión BD
 connectDB();
 
-// Rutas de autenticacion y de juego
+// Rutas
 app.use("/api/auth", authRoutes);
 app.use("/api/game", gameRoutes);
 
-// Iniciar el servidor
-const PORT = process.env.PORT || 3000; //Si no existe el puerto en el deployement, se asigna el 3000
-app.listen(PORT, () => {
-  console.log(`Servidor funcionando en el puerto ${PORT}`);
-}) 
+// Configurar WebSocket
+setupSocketEvents(io);
+
+// Servidor
+const PORT = process.env.PORT || 3000;
+httpServer.listen(PORT, () => {
+  console.log(`Servidor funcionando en puerto ${PORT}`);
+});
+
+export { io };
