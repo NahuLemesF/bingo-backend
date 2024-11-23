@@ -1,4 +1,5 @@
 import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 
 // Funcion para registrar un usuario
@@ -52,7 +53,7 @@ const loginUser = async (req, res) => {
         const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
         // Respuesta de la interface
-        res.json({ msg: 'Sesión iniciada correctamente', user });
+        res.json({ msg: 'Sesión iniciada correctamente', user, token });
     } catch (error) {
         res.status(500).json({ msg: 'Error al iniciar sesión', error });
     }

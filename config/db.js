@@ -12,7 +12,7 @@ const connectDB = async () => {
         console.log(`MongoDB conectado en: ${url}`);
 
     } catch (error) {
-        console.error(`Error al conectar la base de datos: , ${error.message}`);
+        console.error(`Error al conectar la base de datos en ${process.env.MONGO_URI}: ${error.message}`);
         process.exit(1);
     }
 }
