@@ -7,7 +7,7 @@ const startGame = async (req, res) => {
     try {
         // Crea un nuevo juego con el estado 'waiting'
         const newGame = new Game({
-            players: [],
+            players: req.body.players || [], // Para asegurar que los jugadores se envien en el cuerpo de la solicitud
             balls: [],
             gameStatus: 'waiting',
         });
@@ -26,9 +26,14 @@ const startGame = async (req, res) => {
 const assignCardToPlayer = async (gameId) => {
     try {
         // Encuentra el juego por su ID
-        const game = await Game.findById(gameId);
+        const game = await Game.findById(gameId).populate("players"); // Para asegurarse de que hay jugadores
         if (!game) {
             throw new Error("Juego no encontrado");
+        }
+
+        // Verifica si ya hay jugadores en el juego
+        if (game.players.length === 0) {
+            throw new Error("No hay jugadores en el juego");
         }
 
         const assignedCards = [];
