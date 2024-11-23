@@ -23,44 +23,61 @@ const startGame = async (req, res) => {
 };
 
 // Función para asignar una tarjeta a cada jugador
-// Función para asignar una tarjeta a cada jugador
-const assignCardToPlayer = async (gameId) => {
+const assignCardToPlayer = async (req, res) => {
+  const { gameId } = req.params;
   try {
-    // Busca el juego por ID
-    const game = await Game.findById(gameId);
-    if (!game) {
-      throw new Error("Juego no encontrado");
-    }
+      // Buscar el juego - Siempre verificamos primero si existe
+      const game = await Game.findById(gameId);
+      if (!game) {
+          return res.status(404).json({ message: "Juego no encontrado" });
+      }
 
-    // Verifica que hay jugadores en el juego
-    if (game.players.length === 0) {
-      throw new Error("No hay jugadores en el juego");
-    }
+      // Verificar el estado del juego - Importante para el flujo del juego
+      if (game.gameStatus !== 'waiting') {
+          return res.status(400).json({ 
+              message: "El juego no está en estado de espera" 
+          });
+      }
 
-    const assignedCards = [];
+      // Verificar jugadores - No podemos asignar tarjetas sin jugadores
+      if (game.players.length === 0) {
+          return res.status(400).json({ 
+              message: "No hay jugadores en el juego" 
+          });
+      }
 
-    // Asigna una tarjeta a cada jugador
-    for (let i = 0; i < game.players.length; i++) {
-      const player = game.players[i];
+      const assignedCards = [];
 
-      // Genera una nueva tarjeta
-      const newCard = new Card({ columns: generateBingoCard() });
-      await newCard.save();
+      // Generar y asignar tarjetas a cada jugador
+      for (const player of game.players) {
+          // Genera una nueva tarjeta usando la función generateBingoCard
+          const bingoCard = generateBingoCard();
+          const newCard = new Card({ columns: bingoCard });
+          await newCard.save();
 
-      // Asigna el ID de la tarjeta al jugador
-      game.players[i].card = newCard._id;
+          // Asigna la tarjeta al jugador
+          player.bingoCard = newCard._id;
+          assignedCards.push({
+              playerId: player.userId,
+              card: bingoCard
+          });
+      }
 
-      // Añade la tarjeta asignada al arreglo de tarjetas
-      assignedCards.push(newCard);
-    }
+      // Guarda los cambios en el juego
+      await game.save();
 
-    // Guarda los cambios en el juego
-    await game.save();
+      // Retorna las tarjetas asignadas
+      res.status(200).json({ 
+          message: 'Tarjetas asignadas correctamente', 
+          assignedCards 
+      });
 
-    return assignedCards;
   } catch (error) {
-    console.error("Error al asignar tarjetas:", error.message);
-    throw new Error("No se pudo asignar tarjetas a los jugadores.");
+      console.error("Error al asignar tarjetas:", error.message);
+      res.status(500).json({ 
+          message: 'Error al asignar tarjetas',
+          error: error.message 
+      });
   }
 };
 
