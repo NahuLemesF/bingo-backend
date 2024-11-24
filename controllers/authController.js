@@ -2,13 +2,12 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 
-// Funcion para registrar un usuario
+// Registrar un usuario
 
 const registerUser = async (req, res) => {
-    const { name, email, password } = req.body; // Extraemos los datos de la peticion
+    const { name, email, password } = req.body;
 
     try {
-        // Verificamos si el email ya existe en la base de datos
         const existingUser = await User.findOne({ email });
         if (existingUser) {
             return res.status(400).json({ msg: 'El correo ya está registrado' });
@@ -31,7 +30,7 @@ const registerUser = async (req, res) => {
     }
 }
 
-// Funcion para iniciar sesion
+// Iniciar sesion
 
 const loginUser = async (req, res) => {
     const { email, password } = req.body;

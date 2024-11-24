@@ -17,13 +17,11 @@ userSchema.pre('save', async function (next) {
     next();
 })
 
-// Para verificar contraseña del usuario en el login
+// verificar contraseña
 userSchema.methods.matchPassword = async function (enteredPassword) {
     return await bcrypt.compare(enteredPassword, this.password);
 }
 
-// Exportando el modelo de Usuario
 
 const User = mongoose.model('User', userSchema);
-
 export default User;

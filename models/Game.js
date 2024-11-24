@@ -1,70 +1,69 @@
-import mongoose from "mongoose";
-import { checkWinner } from "../controllers/gameController.js";
+import mongoose from 'mongoose';
+import Card from './Card.js';
+import { checkWinner } from '../controllers/gameController.js';
 
-// Esquema del juego
-const gameSchema = new mongoose.Schema(
-  {
+const gameSchema = new mongoose.Schema({
     players: [
       {
-        userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }, // Referencia al usuario
-        name: { type: String, required: true }, // Nombre del jugador
-        card: { type: mongoose.Schema.Types.ObjectId, ref: "Card" }, // Referencia a la tarjeta asignada
+        userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+        name: { type: String, required: true },
+        card: { type: mongoose.Schema.Types.ObjectId, ref: "Card" },
       },
     ],
     balls: [
       {
-        number: { type: Number, required: true }, // Número de la balota
-        calledAt: { type: Date, default: Date.now() }, // Fecha de la llamada
+        number: { type: Number, required: true },
+        calledAt: { type: Date, default: Date.now },
       },
     ],
     gameStatus: {
       type: String,
-      enum: ["waiting", "in-progress", "completed"], // Estado del juego
+      enum: ["waiting", "in-progress", "completed"],
       default: "waiting",
     },
     winner: {
-      type: mongoose.Schema.Types.ObjectId, // Referencia al jugador que ganó
+      type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       default: null,
     },
   },
-  { timestamps: true } // Agrega automáticamente campos createdAt y updatedAt
+  { timestamps: true }
 );
 
-
-// Metodo para sortear una bolilla / balota
-gameSchema.methods.drawBall = async function () {
+gameSchema.methods.generateBall = async function () {
   try {
-    // Generar un número aleatorio entre 1 y 75
-    const ballNumber = Math.floor(Math.random() * 75) + 1;
+    let ballNumber;
 
-    // Verificar que la balota no haya sido llamada antes
-    const ballExists = this.balls.find(ball => ball.number === ballNumber);
-    if (ballExists) {
-      return this.drawBall();  // Si la balota ya fue llamada, llama nuevamente
-    }
+    do {
+      ballNumber = Math.floor(Math.random() * 75) + 1;
+    } while (this.balls.some(ball => ball.number === ballNumber));
 
-    // Añadir la balota al arreglo de balotas extraídas
     this.balls.push({ number: ballNumber });
 
-    // Verificar si algún jugador ha ganado
-    for (let player of this.players) {
-      const playerCard = player.card; // Asumimos que cada jugador tiene una tarjeta
-      if (checkWinner(playerCard, this.balls)) {
-        // Si el jugador ha ganado, actualizamos el estado del juego
-        this.gameStatus = "completed"; // El juego termina
-        this.winner = player.userId; // Marcamos al jugador como ganador
-        break;  // Ya hemos encontrado un ganador, podemos salir del bucle
+    let winnerType = null;
+    let winnerPlayer = null;
+
+    for (const player of this.players) {
+      const playerCard = await Card.findById(player.card);
+      if (!playerCard) {
+        throw new Error(`Tarjeta no encontrada para el jugador ${player.userId}`);
+      }
+
+      winnerType = checkWinner(playerCard, this.balls);
+      if (winnerType) {
+        this.gameStatus = 'completed';
+        this.winner = player.userId;
+        winnerPlayer = player;
+        break;
       }
     }
 
-    // Guardar los cambios en el juego
     await this.save();
 
-    return ballNumber;  // Retornar el número de la balota extraída
+    return { ballNumber, winnerType, winnerPlayer };
   } catch (error) {
-    console.error("Error al extraer la balota:", error.message);
-    throw new Error("No se pudo extraer la balota.");
+    console.error('Error al extraer la balota:', error.message);
+    throw new Error('No se pudo extraer la balota.');
   }
 };
 

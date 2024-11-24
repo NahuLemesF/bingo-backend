@@ -1,17 +1,19 @@
 import express from "express";
+import connectDB from "./config/db.js";
 import dotenv from "dotenv";
+import authRoutes from "./routes/authRoutes.js";
+import gameRoutes from "./routes/gameRoutes.js";
+
 import { createServer } from "http";
 import { Server } from "socket.io";
 import cors from "cors";
-import connectDB from "./config/db.js";
-import authRoutes from "./routes/authRoutes.js";
-import gameRoutes from "./routes/gameRoutes.js";
 import { setupSocketEvents } from "./socket/socketManager.js";
 
 dotenv.config();
 
-// Inicialización
 const app = express();
+app.use(express.json());
+
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
@@ -22,9 +24,8 @@ const io = new Server(httpServer, {
 
 // Middleware
 app.use(cors());
-app.use(express.json());
 
-// Conexión BD
+
 connectDB();
 
 // Rutas
