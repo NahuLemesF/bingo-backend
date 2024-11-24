@@ -3,7 +3,6 @@ import connectDB from "./config/db.js";
 import dotenv from "dotenv";
 import authRoutes from "./routes/authRoutes.js";
 import gameRoutes from "./routes/gameRoutes.js";
-
 import { createServer } from "http";
 import { Server } from "socket.io";
 import cors from "cors";
@@ -18,14 +17,13 @@ const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
     origin: process.env.FRONTEND_URL || "http://localhost:5173", // Puerto típico de Vite
-    methods: ["GET", "POST"]
-  }
+  },
 });
 
 // Middleware
 app.use(cors());
 
-
+// Conectar a la base de datos
 connectDB();
 
 // Rutas
