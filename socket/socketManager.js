@@ -1,11 +1,45 @@
 // socket/socketManager.js
 
-let players = [];
-let countdownInterval;
-let countdownTime = 30;
-let gameState = 'waiting';
+// Variables globales al inicio
+const initialState = {
+  countdownTime: 30,
+  gameState: 'waiting'
+};
 
-// Definir startCountdown antes de usarla
+let players = [];
+let countdownInterval = null;
+let countdownTime = initialState.countdownTime;
+let gameState = initialState.gameState;
+
+const resetGame = (io) => {
+  if (countdownInterval) {
+    clearInterval(countdownInterval);
+  }
+  players = [];
+  countdownTime = initialState.countdownTime;
+  gameState = initialState.gameState;
+  countdownInterval = null;
+
+  io.emit("updatePlayers", players);
+  io.emit("countdown", countdownTime);
+  io.emit("gameState", gameState);
+};
+
+const handlePlayerLeave = (socketId, io) => {
+  players = players.filter(player => player.id !== socketId);
+  io.emit("updatePlayers", players);
+
+  if (players.length < 1) {
+    resetGame(io);
+  }
+};
+
+const startGame = (io) => {
+  gameState = 'in-progress';
+  io.emit("gameState", gameState);
+  io.emit("startGame", players);
+};
+
 const startCountdown = (io) => {
   gameState = 'countdown';
   io.emit("gameState", gameState);
@@ -18,50 +52,21 @@ const startCountdown = (io) => {
       clearInterval(countdownInterval);
       countdownInterval = null;
       
-      if (players.length >= 2) {
-        startGame(io);
-      } else {
+      if (players.length < 2) {
         io.emit("timeout");
         resetGame(io);
+      } else {
+        startGame(io);
       }
     }
   }, 1000);
-};
-
-const resetGame = (io) => {
-  if (countdownInterval) {
-    clearInterval(countdownInterval);
-  }
-  players = [];
-  countdownTime = 30;
-  gameState = 'waiting';
-  countdownInterval = null;
-
-  io.emit("updatePlayers", players);
-  io.emit("countdown", countdownTime);
-  io.emit("gameState", gameState);
-};
-
-const startGame = (io) => {
-  gameState = 'in-progress';
-  io.emit("gameState", gameState);
-  io.emit("startGame", players);
-};
-
-const handlePlayerLeave = (socketId, io) => {
-  players = players.filter(player => player.id !== socketId);
-  io.emit("updatePlayers", players);
-
-  if (players.length < 2) {
-    resetGame(io);
-    io.emit("timeout");
-  }
 };
 
 export const setupSocketEvents = (io) => {
   io.on("connection", (socket) => {
     console.log("Cliente conectado:", socket.id);
 
+    // Emitir estado inicial
     socket.emit("countdown", countdownTime);
     socket.emit("gameState", gameState);
     socket.emit("updatePlayers", players);
@@ -76,15 +81,6 @@ export const setupSocketEvents = (io) => {
       if (players.length >= 1 && gameState === 'waiting' && !countdownInterval) {
         startCountdown(io);
       }
-    });
-
-    socket.on("resetGame", () => {
-      resetGame(io);
-      io.emit("gameReset");
-    });
-
-    socket.on("leaveLobby", () => {
-      handlePlayerLeave(socket.id, io);
     });
 
     socket.on("disconnect", () => {
