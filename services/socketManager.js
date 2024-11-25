@@ -1,6 +1,5 @@
-// services/socketManager.js
 import socketIO from 'socket.io';
-import { generateBingoCard } from '../utils/generateCard'; // Asegúrate de que la ruta sea correcta
+import { generateBingoCard } from '../utils/generateCard'; 
 
 class SocketManager {
   constructor(server) {
@@ -82,28 +81,6 @@ class SocketManager {
 
     // Iniciar sorteo de balotas
     this.startDrawingBalls(gameId);
-  }
-
-  generateBingoCard() {
-    // Implementar generación de tarjetón
-    return {
-      B: this.getRandomNumbers(1, 15, 5),
-      I: this.getRandomNumbers(16, 30, 5),
-      N: this.getRandomNumbers(31, 45, 4), // Se generan solo cuatro números porque el centro será libre
-      G: this.getRandomNumbers(46, 60, 5),
-      O: this.getRandomNumbers(61, 75, 5),
-    };
-  }
-
-  getRandomNumbers(min, max, count) {
-    const numbers = [];
-    while (numbers.length < count) {
-      const randomNumber = Math.floor(Math.random() * (max - min + 1)) + min;
-      if (!numbers.includes(randomNumber)) {
-        numbers.push(randomNumber);
-      }
-    }
-    return numbers;
   }
 
   startDrawingBalls(gameId) {
